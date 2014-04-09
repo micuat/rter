@@ -139,18 +139,8 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 	public void initListeners(){
 		mSensorManager.registerListener(this,
-				mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-				SensorManager.SENSOR_DELAY_NORMAL);
-
-		mSensorManager.registerListener(this,
-				mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-				SensorManager.SENSOR_DELAY_NORMAL);
-		mSensorManager.registerListener(this, 
-				mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
-				SensorManager.SENSOR_DELAY_NORMAL);
-		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-				SensorManager.SENSOR_DELAY_NORMAL);
+				SensorManager.SENSOR_DELAY_FASTEST);
 	}
 
 	private void initGyroListener() {
@@ -223,6 +213,10 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		return eyeLevelInclination;
 	}
 	
+	public float[] getLandscapeRotationMatrix(){
+		return outRotationMatrix;
+	}
+	
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent) {
 		switch (sensorEvent.sensor.getType()) {
@@ -232,15 +226,8 @@ public class SensorSource implements SensorEventListener, LocationListener{
 			SensorManager.getRotationMatrixFromVector(rotationMatrix, sensorEvent.values);
 		}
 		
-		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X,
-				SensorManager.AXIS_Z, outRotationMatrix);  	// Remap coordinate System to compensate for the landscape position of device
-		SensorManager.getOrientation(outRotationMatrix, orientationValues);
-		
-		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination()); //Azimuth; (Degrees);
-		eyeLevelInclination = (float) Math.toDegrees(orientationValues[1]); //Pitch; (Degrees); down is 90 , up is -90.
-		deviceOrientation = (float) Math.toDegrees(orientationValues[2]); // Roll;
-
-//		Log.d("SensorDebug", "az: " + currentOrientation + " pitch: " + eyeLevelInclination + " roll: " + deviceOrientation);
+		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Y,
+				SensorManager.AXIS_MINUS_X, outRotationMatrix);  	// Remap coordinate System to compensate for the landscape position of device
 		
 		sendSensorBroadcast();  // Let other classes know of update to sensor data.
 	}

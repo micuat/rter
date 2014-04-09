@@ -6,12 +6,10 @@ import javax.microedition.khronos.opengles.GL10;
 
 import ca.nehil.rter.streamingapp2.overlay.IndicatorFrame;
 import ca.nehil.rter.streamingapp2.overlay.Triangle;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.location.Location;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class POI {
@@ -110,92 +108,69 @@ public class POI {
 	 */
 	public void render(GL10 gl, Location userLocation, Point screenSize){
 		gl.glLoadIdentity();
-		float bearingToPoi;
-		float distance;
-		double framePositionY = 0;
-		float scale = 1;
 		
-		if(userLocation != null){
-			if(debugCount++ % 50 == 0) Log.d("LocationDebug", "POI received userLocation");
-			bearingToPoi = this.relativeBearingTo(userLocation);
-//			Log.d("SensorDebug", "bearing to: " + bearingToPoi);
-			distance = this.distanceTo(userLocation);
-			calculateFrameSize(distance);
-			// Interpolate the values from 0.5 meters - 20 meters to lie between 4.2 and 0.5.
-			if(distance <= 20 && distance >= 0.5){
-				scale = 0.5f - ( 0.189744f * ( distance - 20));
-			} else if (distance > 20){
-				scale = 0.5f;
-			} else if (distance < 0.5){
-				scale  = 4.2f;
-			}
-			framePositionY = calculateFramePositionY(distance);
-		}else{
-			if(debugCount++ % 50 == 0) Log.d("alok", "userLocation was null- POI");
-			bearingToPoi = 0f;
-			scale = 1;
+		if( triangleFrame == null ) {
+			triangleFrame = new Triangle();
 		}
-		double framePositionX = (bearingToPoi/(camAngleHorizontal/2.0)) * (screenWidth/2.0);
+		
+		gl.glPushMatrix();
+		gl.glTranslatef(0.0f, 0.0f, -6.0f);
+		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
 
-		//		if(fooCount++ % 40 == 0) Log.d("LocationDebug", "Heading: " + (float)sensorSource.getHeading());
+		gl.glPushMatrix();
+		gl.glRotatef(90, 0, 0, 1);
+		gl.glTranslatef(0.0f, 1.0f, 0.0f);
+		triangleFrame.colour(Triangle.Colour.RED);
+		for( int i = 0; i < 8; i++ ) {
+			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			triangleFrame.draw(gl);
+		}
+		gl.glPopMatrix();
+		
+		gl.glPushMatrix();
+		gl.glTranslatef(0.0f, 1.0f, 0.0f);
+		triangleFrame.colour(Triangle.Colour.GREEN);
+		for( int i = 0; i < 8; i++ ) {
+			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			triangleFrame.draw(gl);
+		}
+		gl.glPopMatrix();
+		
+		gl.glPushMatrix();
+		gl.glRotatef(90, -1, 0, 0);
+		gl.glTranslatef(0.0f, 1.0f, 0.0f);
+		triangleFrame.colour(Triangle.Colour.BLUE);
+		for( int i = 0; i < 8; i++ ) {
+			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			triangleFrame.draw(gl);
+		}
+		gl.glPopMatrix();
+		
+		gl.glPopMatrix();
 
-//		float width = (screenWidth - (scale*screenWidth));
-//		if(width < 30){
-//			width = 30;
-//		}
-		//		Log.d("alok", "rec coords: "+ left+" "+screenHeight+" "+width+" "+height);
-
-		gl.glLoadIdentity();
-		gl.glTranslatef((float)framePositionX, (float)framePositionY, -6.0f);
-		gl.glScalef(scale, scale, scale);
+		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
+		if(userLocation != null){
+			//gl.glTranslatef(0, 10, 10);
+			float scale = 100000.0f;
+			gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, 0.0f);
+		}
 		
 		if(this.type.equals("streaming-video-v1") || this.type.equals("type1")){
 			squareFrame = new IndicatorFrame();
 			squareFrame.draw(gl);
 		}else if (this.type.equals("beacon") || this.type.equals("type2")){
-			triangleFrame = new Triangle();
-			triangleFrame.draw(gl);
+			gl.glPushMatrix();
+			//gl.glScalef(100, 100, 100);
+			triangleFrame.colour(Triangle.Colour.GREEN);
+			gl.glRotatef(90, 1, 0, 0);
+			gl.glScalef(5, 5, 5);
+			for( int i = 0; i < 8; i++ ) {
+				gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+				triangleFrame.draw(gl);
+			}
+			gl.glPopMatrix();
 		}
+		
 	}
-	
-	/**
-	 * Calculates the vertical position of the frame to render on screen. 
-	 * @param distanceToPoi Distance from the user to the POI (in meters).
-	 * @return  Vertical position of the frame <b>below</b> the center (0,0). 
-	 */
-	private double calculateFramePositionY(float distanceToPoi){
-		double angleVerticalFov = camAngleVertical; // Vertical field of view angle of the camera, in degrees.
-		double angleInclination = sensorSource.getEyeLevelInclination(); // Angle below horizon where user is looking. Is 0 for testing, means user is looking straight at horizon
-		double angleMarker; // Angle below horizon where marker is located. AngleActual on the paper.
-		double heightPerson = 2; // Meters
-		double heightMarker = 0.3; // Meters
-		double framePositionY;
-		
-		angleMarker = Math.atan((heightPerson - (heightMarker/2))/distanceToPoi); // angleMarker will be between -pi/2 and pi/2 here.
-		angleMarker = Math.toDegrees(angleMarker);
-		framePositionY = ((angleMarker - angleInclination)/ angleVerticalFov) * screenHeight;
-		
-		if(fooCount++ % 30 == 0) Log.d("AngleDebug", "below the center: " + framePositionY + ", verticalAngle: " + angleVerticalFov + ", marker angle below horizon: " + angleMarker + ", ScreenHeight: " + screenHeight + ", distance: " + distanceToPoi);
-		
-		return -framePositionY; // Returning negative as the frame's position should be moving in the opposite direction to the movement of the users head inclination.
-	}
-	
-	/**
-	 * Calculates the size of the frame to render, based on the distance of the user from the POI, and the height of
-	 * the POI w.r.t. the user.
-	 * @param distanceToPoi Distance from the user to the POI(in meters).
-	 * @return the frame size
-	 */
-	private double calculateFrameSize(float distanceToPoi){
-		double angleVerticalFov = camAngleVertical;
-		double angleObject; // The angle created by height of the object
-		double heightPerson = 2;
-		double heightMarker = 0.3;
-		double frameSize;
-		
-		angleObject = Math.atan(heightPerson/distanceToPoi) - Math.atan((heightPerson - heightMarker) / distanceToPoi);
-		frameSize = (angleObject/angleVerticalFov) * screenHeight;
-		Log.d("alok", "frame size: " + frameSize + " distance poi: " + distanceToPoi + " scrn ht: " + screenHeight + " angle o: " + angleObject);
-		return frameSize;
-	}
+
 }
