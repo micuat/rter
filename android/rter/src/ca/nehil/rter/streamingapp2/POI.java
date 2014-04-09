@@ -46,6 +46,10 @@ public class POI {
 		screenWidth = storedValues.getFloat("screenSize.x", 0);
 		screenHeight = storedValues.getFloat("screenSize.y", 0);
 		Log.d("CameraDebug", "scrn ht poi: " + screenHeight);
+		
+		// beacons for rendering
+		triangleFrame = new Triangle();
+		squareFrame = new IndicatorFrame();
 	}
 
 	public void updatePOIList(ArrayList<POI> newPoi){
@@ -109,58 +113,23 @@ public class POI {
 	public void render(GL10 gl, Location userLocation, Point screenSize){
 		gl.glLoadIdentity();
 		
-		if( triangleFrame == null ) {
-			triangleFrame = new Triangle();
-		}
-		
-		gl.glPushMatrix();
-		gl.glTranslatef(0.0f, 0.0f, -6.0f);
-		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
-
-		gl.glPushMatrix();
-		gl.glRotatef(90, 0, 0, 1);
-		gl.glTranslatef(0.0f, 1.0f, 0.0f);
-		triangleFrame.colour(Triangle.Colour.RED);
-		for( int i = 0; i < 8; i++ ) {
-			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
-			triangleFrame.draw(gl);
-		}
-		gl.glPopMatrix();
-		
-		gl.glPushMatrix();
-		gl.glTranslatef(0.0f, 1.0f, 0.0f);
-		triangleFrame.colour(Triangle.Colour.GREEN);
-		for( int i = 0; i < 8; i++ ) {
-			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
-			triangleFrame.draw(gl);
-		}
-		gl.glPopMatrix();
-		
-		gl.glPushMatrix();
-		gl.glRotatef(90, -1, 0, 0);
-		gl.glTranslatef(0.0f, 1.0f, 0.0f);
-		triangleFrame.colour(Triangle.Colour.BLUE);
-		for( int i = 0; i < 8; i++ ) {
-			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
-			triangleFrame.draw(gl);
-		}
-		gl.glPopMatrix();
-		
-		gl.glPopMatrix();
-
 		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
 		if(userLocation != null){
-			//gl.glTranslatef(0, 10, 10);
-			float scale = 100000.0f;
+			float scale = 100000.0f; // scale to world
 			gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, 0.0f);
 		}
 		
 		if(this.type.equals("streaming-video-v1") || this.type.equals("type1")){
-			squareFrame = new IndicatorFrame();
-			squareFrame.draw(gl);
+			gl.glPushMatrix();
+			gl.glRotatef(90, 1, 0, 0);
+			gl.glScalef(5, 5, 5);
+			for( int i = 0; i < 8; i++ ) {
+				gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+				squareFrame.draw(gl);
+			}
+			gl.glPopMatrix();
 		}else if (this.type.equals("beacon") || this.type.equals("type2")){
 			gl.glPushMatrix();
-			//gl.glScalef(100, 100, 100);
 			triangleFrame.colour(Triangle.Colour.GREEN);
 			gl.glRotatef(90, 1, 0, 0);
 			gl.glScalef(5, 5, 5);

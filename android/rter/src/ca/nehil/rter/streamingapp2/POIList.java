@@ -22,6 +22,7 @@ import android.content.Context;
 import android.graphics.Point;
 import android.location.Location;
 import android.util.Log;
+import ca.nehil.rter.streamingapp2.overlay.Triangle;
 
 import com.codebutler.android_websockets.WebSocketClient;
 
@@ -43,6 +44,8 @@ public class POIList {
 	
 	private Context context;
 	
+	Triangle triangleFrame;
+
 	/**
 	 * 
 	 */
@@ -158,6 +161,50 @@ public class POIList {
 		for (POI item : items.values()) {
 		    item.render(gl, userLocation, screenSize);
 		}
+		
+		// axes for debug
+		if( triangleFrame == null ) {
+			triangleFrame = new Triangle();
+		}
+		
+		gl.glLoadIdentity();
+		gl.glPushMatrix();
+		gl.glTranslatef(0.2f, 0.1f, -6.0f);
+		gl.glScalef(0.3f, 0.3f, 0.3f);
+		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
+
+		gl.glPushMatrix();
+		gl.glRotatef(90, 0, 0, -1);
+		gl.glTranslatef(0.0f, 1.0f, 0.0f);
+		triangleFrame.colour(Triangle.Colour.RED);
+		for( int i = 0; i < 8; i++ ) {
+			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			triangleFrame.draw(gl);
+		}
+		gl.glPopMatrix();
+		
+		gl.glPushMatrix();
+		gl.glTranslatef(0.0f, 1.0f, 0.0f);
+		triangleFrame.colour(Triangle.Colour.GREEN);
+		for( int i = 0; i < 8; i++ ) {
+			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			triangleFrame.draw(gl);
+		}
+		gl.glPopMatrix();
+		
+		gl.glPushMatrix();
+		gl.glRotatef(90, 1, 0, 0);
+		gl.glTranslatef(0.0f, 1.0f, 0.0f);
+		triangleFrame.colour(Triangle.Colour.BLUE);
+		for( int i = 0; i < 8; i++ ) {
+			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			triangleFrame.draw(gl);
+		}
+		gl.glPopMatrix();
+		
+		gl.glPopMatrix();
+		// done axes drawing
+		
 		/*
 		for (Map.Entry<Integer, POI> entry : items.entrySet()) {
 		    // ...
