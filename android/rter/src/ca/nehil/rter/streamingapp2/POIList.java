@@ -68,6 +68,8 @@ public class POIList {
 		// initializeList();
 		client.connect();
 		generateTestList();
+		
+		triangleFrame = new Triangle();
 	}
 	
 	private void initClient() {
@@ -160,6 +162,8 @@ public class POIList {
 	
 	public void render(GL10 gl, Location userLocation, Point screenSize) {
 		
+		gl.glLineWidth(2);
+		
 		float[] lrm = sensorSource.getLandscapeRotationMatrix();
 		float scale = 0.1f;
 		displacement[0] += lrm[2] * scale;
@@ -171,47 +175,7 @@ public class POIList {
 		}
 		
 		// axes for debug
-		if( triangleFrame == null ) {
-			triangleFrame = new Triangle();
-		}
-		
-		gl.glLoadIdentity();
-		gl.glPushMatrix();
-		gl.glTranslatef(-1.0f, 0.1f, -6.0f);
-		gl.glScalef(0.3f, 0.3f, 0.3f);
-		gl.glMultMatrixf(lrm, 0);
-
-		gl.glPushMatrix();
-		gl.glRotatef(90, 0, 0, -1);
-		gl.glTranslatef(0.0f, 1.0f, 0.0f);
-		triangleFrame.colour(Triangle.Colour.RED);
-		for( int i = 0; i < 8; i++ ) {
-			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
-			triangleFrame.draw(gl);
-		}
-		gl.glPopMatrix();
-		
-		gl.glPushMatrix();
-		gl.glTranslatef(0.0f, 1.0f, 0.0f);
-		triangleFrame.colour(Triangle.Colour.GREEN);
-		for( int i = 0; i < 8; i++ ) {
-			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
-			triangleFrame.draw(gl);
-		}
-		gl.glPopMatrix();
-		
-		gl.glPushMatrix();
-		gl.glRotatef(90, 1, 0, 0);
-		gl.glTranslatef(0.0f, 1.0f, 0.0f);
-		triangleFrame.colour(Triangle.Colour.BLUE);
-		for( int i = 0; i < 8; i++ ) {
-			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
-			triangleFrame.draw(gl);
-		}
-		gl.glPopMatrix();
-		
-		gl.glPopMatrix();
-		// done axes drawing
+		drawAxes(gl, lrm);
 		
 		/*
 		for (Map.Entry<Integer, POI> entry : items.entrySet()) {
@@ -219,5 +183,45 @@ public class POIList {
 		}
 		*/
 	}
+	
+	private void drawAxes(GL10 gl, float[] lrm) {
+		gl.glLineWidth(1);
+		
+		gl.glLoadIdentity();
+		gl.glPushMatrix();
+		gl.glTranslatef(-1.5f, 0.5f, -6.0f);
+		gl.glScalef(0.3f, 0.3f, 0.3f);
+		gl.glMultMatrixf(lrm, 0);
 
+		gl.glPushMatrix();
+		gl.glRotatef(90, 0, 0, -1);
+		gl.glTranslatef(0.0f, 2.0f, 0.0f);
+		triangleFrame.colour(Triangle.Colour.RED);
+		for( int i = 0; i < 8; i++ ) {
+			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			triangleFrame.draw(gl, true);
+		}
+		gl.glPopMatrix();
+		
+		gl.glPushMatrix();
+		gl.glTranslatef(0.0f, 2.0f, 0.0f);
+		triangleFrame.colour(Triangle.Colour.GREEN);
+		for( int i = 0; i < 8; i++ ) {
+			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			triangleFrame.draw(gl, true);
+		}
+		gl.glPopMatrix();
+		
+		gl.glPushMatrix();
+		gl.glRotatef(90, 1, 0, 0);
+		gl.glTranslatef(0.0f, 2.0f, 0.0f);
+		triangleFrame.colour(Triangle.Colour.BLUE);
+		for( int i = 0; i < 8; i++ ) {
+			gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			triangleFrame.draw(gl, true);
+		}
+		gl.glPopMatrix();
+		
+		gl.glPopMatrix();
+	}
 }

@@ -152,7 +152,6 @@ public class CameraGLRenderer implements Renderer {
 		Log.d("CameraDebug", "scrn size renderer: " + screenSize.y);
 		storedValuesEditor.commit();
 		
-		indicatorFrame.resize(xTotal, yTotal, distance);
 		// Set the viewport (display area) to cover the entire window
 		gl.glViewport(0, 0, width, height);
 
