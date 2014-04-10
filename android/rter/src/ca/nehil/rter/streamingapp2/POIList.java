@@ -45,6 +45,8 @@ public class POIList {
 	private Context context;
 	
 	Triangle triangleFrame;
+	
+	float[] displacement = new float[2];
 
 	/**
 	 * 
@@ -157,9 +159,15 @@ public class POIList {
 	}
 	
 	public void render(GL10 gl, Location userLocation, Point screenSize) {
+		
+		float[] lrm = sensorSource.getLandscapeRotationMatrix();
+		float scale = 0.1f;
+		displacement[0] += lrm[2] * scale;
+		displacement[1] += lrm[6] * scale;
+		
 		// foreach POI as poi, poi.render(gl, userLocation, screenSize)
 		for (POI item : items.values()) {
-		    item.render(gl, userLocation, screenSize);
+		    item.render(gl, userLocation, displacement, screenSize);
 		}
 		
 		// axes for debug
@@ -169,9 +177,9 @@ public class POIList {
 		
 		gl.glLoadIdentity();
 		gl.glPushMatrix();
-		gl.glTranslatef(0.2f, 0.1f, -6.0f);
+		gl.glTranslatef(-1.0f, 0.1f, -6.0f);
 		gl.glScalef(0.3f, 0.3f, 0.3f);
-		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
+		gl.glMultMatrixf(lrm, 0);
 
 		gl.glPushMatrix();
 		gl.glRotatef(90, 0, 0, -1);

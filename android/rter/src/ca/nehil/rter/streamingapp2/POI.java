@@ -110,12 +110,13 @@ public class POI {
 	/*
 	 * Use this method to render each POI, called from the frame render in CameraGLRenderer.java
 	 */
-	public void render(GL10 gl, Location userLocation, Point screenSize){
+	public void render(GL10 gl, Location userLocation, float[] displacement, Point screenSize){
 		gl.glLoadIdentity();
 		
 		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
 		if(userLocation != null){
 			float scale = 100000.0f; // scale to world
+			gl.glTranslatef(displacement[0], displacement[1], 0.0f);
 			gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, 0.0f);
 		}
 		
